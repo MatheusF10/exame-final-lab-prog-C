@@ -70,8 +70,6 @@ File get_file(FILE *fp){
 
     file.buffer[file.size] = '\0';
 
-    fclose(fp);
-
     file.lines = 0;
 
     for(int i = 0; file.buffer[i]; i++){
@@ -85,6 +83,24 @@ File get_file(FILE *fp){
     free(buffer);
 
     return file;
+}
+
+void initialize_customers(){
+    File file = get_file(file_customers);
+    char *line = strtok(file.buffer, "\n");
+    customers = malloc(sizeof(Customers) * file.lines);
+    
+    // Pula o header do arquivo CSV
+    line = strtok(NULL, "\n");
+    
+    // Atribui e inicializa a struct de mesas
+    for(int i = 0; i < file.lines; i++){
+        sscanf(line, "%c ,%d", &customers[i].group, &customers[i].people);
+        customers[i].table = -1;
+        line = strtok(NULL, "\n");
+    }
+    // Salva variável global de clientes para fins de iteração
+    global_customers = file.lines;
 }
 
 void load_customers(){
@@ -102,23 +118,8 @@ void load_customers(){
     }
 
     printf("Carregado arquivos de clientes.\n");
-}
 
-void load_tables(){
-    char path[100];
-
-    printf("Indique o caminho do ficheiro de mesas: \n");
-    scanf("%s", path);
-    
-    file_tables = fopen(path, "r+");
-
-    if(!file_tables){
-        printf("Erro ao abrir o arquivo de mesas.\n");
-
-        exit(1);
-    }
-
-    printf("Carregado arquivos de mesas.\n");
+    initialize_customers();
 }
 
 void initialize_tables(){
@@ -136,38 +137,28 @@ void initialize_tables(){
     }
 
     global_tables = file.lines;
-
-    fclose(file_tables);
 }
 
-void initialize_customers(){
-    File file = get_file(file_customers);
-    char *line = strtok(file.buffer, "\n");
-    customers = malloc(sizeof(Customers) * file.lines);
+void load_tables(){
+    char path[100];
+
+    printf("Indique o caminho do ficheiro de mesas: \n");
+    scanf("%s", path);
     
-    // Pula o header do arquivo CSV
-    line = strtok(NULL, "\n");
-    
-    // Atribui e inicializa a struct de mesas
-    for(int i = 0; i < file.lines; i++){
-        sscanf(line, "%c ,%d", &customers[i].group, &customers[i].people);
-        customers[i].table = -1;
-        line = strtok(NULL, "\n");
+    file_tables = fopen(path, "r+");
+
+    if(!file_tables){
+        printf("Erro ao abrir o arquivo de mesas.\n");
+
+        exit(1);
     }
 
-    // Salva variável global de clientes para fins de iteração
-    global_customers = file.lines;
+    printf("Carregado arquivos de mesas.\n");
 
-    // Fecha o arquivos pois não é mais necessário
-    fclose(file_customers);
+    initialize_tables();
 }
 
-
-void assign_tables(){
-    // Inicializa Mesa e Clientes
-    initialize_tables();
-    initialize_customers();
-    
+void assign_tables(){    
     for(int i = 0; i < global_tables; i++){
         Table current_table = tables[i];
 
@@ -190,8 +181,140 @@ void assign_tables(){
     printf("Mesas atribuidas...\n");
 }
 
+void see_table(Table table){
+    printf(" Mesa | Lugares | Ocupacao \n ");
+
+    printf("  %d      %d         %d    \n", table.id, table.places, table.occupation);
+}
+
+void edit_table(Table table){
+    Table edited_table = table;
+
+    printf("Editando mesa...\n");
+
+    printf("Indique lugares e ocupação da mesa\n");
+    scanf("%d %d", &edited_table.places, &edited_table.occupation);
+
+    for(int i = 0; i < global_tables; i++){
+        if(tables[i].id != edited_table.id){
+            continue;
+        }
+
+        tables[i] = edited_table;
+
+        break;
+    }
+
+    printf("Mesa editada com sucesso!\n");
+
+    see_table(edited_table);
+}
+
+void delete_table(Table table){
+    int found = 0;
+
+    printf("Deletando mesa...\n");
+
+    for (int i = 0; i < global_tables; i++) {
+        if (tables[i].id == table.id) {
+            found = 1;
+
+            // Move todos os elementos à frente uma posição para trás
+            for (int j = i; j < global_tables - 1; j++) {
+                tables[j] = tables[j + 1];
+            }
+
+            // Reduz o número de mesas
+            global_tables--; 
+
+            break;
+        }
+    }
+
+    if(!found){
+        printf("Erro, nao foi possivel encontrar a mesa especificada.\n");
+
+        exit(1);
+    }
+
+    printf("Mesa deletada com sucesso!\n");
+}
+
 void manage_table(){
-    printf("Gerindo mesas...\n");
+    int table_number, option, found = 0;
+    Table table;
+
+    printf("Gerir mesas...\n");
+
+    printf("Indique o numero da mesa\n");
+
+    scanf("%d", &table_number);
+
+    for(int i = 0; i < global_tables; i++){
+        if(tables[i].id != table_number){
+            continue;
+        }
+
+        found = 1;
+        
+        table = tables[i];
+        
+        break;
+    }
+
+    if(!found){
+        printf("Erro, nao foi possivel encontrar a mesa especificada.\n");
+
+        exit(1);
+    }
+
+    printf("1 - Ver Mesa\n");
+    printf("2 - Editar Mesa\n");
+    printf("3 - Deletar Mesa\n");
+
+    scanf("%d", &option);
+
+    switch(option){
+        case 1: 
+            see_table(table);
+            break;
+        case 2:
+            edit_table(table);
+            break;
+        default:
+            delete_table(table);
+    }
+}
+
+void clean_occupation(){
+    int table_number, found = 0;
+
+    printf("Indique o numero da mesa\n");
+    scanf("%d", &table_number);
+
+    printf("Limpando ocupacao\n");
+
+    // Mapeia a mesa selecionada
+    for(int i = 0; i < global_tables; i++){
+        if(tables[i].id != table_number){
+            continue;
+        }
+
+        // Desvincula cliente a mesa (desocupação)
+        for(int j = 0; j < global_customers; j++){
+            if(customers[j].table != table_number){
+                continue;
+            }
+
+            customers[j].table = -1;
+        }
+
+        found = 1;
+    
+        tables[i].occupation = 0;
+        
+        break;
+    }
 }
 
 void display_tables(){
@@ -211,7 +334,25 @@ void display_tables(){
 }
 
 void save_tables(){
-    printf("Salvando arquivo de mesas...\n");
+    char path[100];
+
+    if (!file_tables) {
+        printf("Erro ao abrir o ficheiro para escrita.\n");
+    
+        exit(1);
+    }
+
+    rewind(file_tables);
+    
+    // Escreve o cabeçalho
+    fprintf(file_tables, "Mesa,Lugares,Ocupacao\n");
+
+    // Escreve cada mesa com os dados atualizados
+    for (int i = 0; i < global_tables; i++) {
+        fprintf(file_tables, "%d,%d,%d\n", tables[i].id, tables[i].places, tables[i].occupation);
+    }
+
+    printf("Ficheiro de mesas salvo com sucesso!\n");
 }
 
 void menu(){
@@ -223,9 +364,10 @@ void menu(){
         printf("1 - Carregar clientes e mesas apartir de um CSV\n");
         printf("2 - Atribuir uma mesa a cada grupo de clientes\n");
         printf("3 - Ver, editar ou remover mesa existente\n");
-        printf("4 - Apresentar as mesas atribuidas a cada grupo de clientes\n");
-        printf("5 - Guardar o ficheiro de mesas CSV\n");
-        printf("6 - Fechar o programa e sair\n");
+        printf("4 - Limpar ocupacao de uma mesa\n");
+        printf("5 - Apresentar as mesas atribuidas a cada grupo de clientes\n");
+        printf("6 - Guardar o ficheiro de mesas CSV\n");
+        printf("7 - Fechar o programa e sair\n");
     
         scanf("%d", &option);
 
@@ -247,14 +389,19 @@ void menu(){
             manage_table();
             break;
         case 4:
-            display_tables();
+            clean_occupation();
             break;
         case 5:
+            display_tables();
+            break;
+        case 6:
             save_tables();
             break;
         default:
             free(tables);
             free(customers);
+            fclose(file_tables);
+            fclose(file_customers);
             exit(0);
         };
 
