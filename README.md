@@ -24,12 +24,12 @@ Cada linha representa uma mesa com:
 
 **Formato:**
 
-Mesa,Lugares,Ocupação
-1,2,0
-2,6,5
-3,2,1
-4,8,0
-5,4,0
+Mesa,Lugares,Ocupação  
+1,2,0  
+2,6,5  
+3,2,1  
+4,8,0  
+5,4,0  
 
 ### 👥 Ficheiro de Clientes
 
@@ -39,12 +39,12 @@ Cada linha representa um grupo de clientes, com:
 
 **Formato:**
 
-Grupo,Pessoas
-A,2
-B,5
-C,7
-D,1
-E,4
+Grupo,Pessoas  
+A,2  
+B,5  
+C,7  
+D,1  
+E,4  
 
 ---
 
@@ -67,11 +67,11 @@ E,4
 
 ### Exemplo de saída:
 
-Grupo A - mesa 1
-Grupo B - aguarda
-Grupo C - mesa 4
-Grupo D - aguarda
-Grupo E - mesa 5
+Grupo A - mesa 1  
+Grupo B - aguarda  
+Grupo C - mesa 4  
+Grupo D - aguarda  
+Grupo E - mesa 5  
 
 ---
 
@@ -93,5 +93,5 @@ Grupo E - mesa 5
    gcc prog.c prog.modules.c -o prog
    
 2. Execute:
-  ```bash
-  ./prog
+   ```bash
+   ./prog  
