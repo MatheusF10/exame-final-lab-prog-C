@@ -1,5 +1,5 @@
-#ifndef RESTAURANT_MANAGER_H
-#define RESTAURANT_MANAGER_H
+#ifndef PROG_MODULES_H
+#define PROG_MODULES_H
     
 void menu();
 
