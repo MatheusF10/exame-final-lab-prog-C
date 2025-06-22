@@ -93,5 +93,5 @@ Grupo E - mesa 5
    gcc prog.c prog.modules.c -o prog
    
 2. Execute:
-  ```bash
-  ./prog
+   ```bash
+   ./prog  
